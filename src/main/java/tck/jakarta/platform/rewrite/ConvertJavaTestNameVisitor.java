@@ -1,19 +1,12 @@
 package tck.jakarta.platform.rewrite;
 
-import org.junit.jupiter.api.Test;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.JavadocVisitor;
-import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.Comment;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Javadoc;
 
-import java.util.Collections;
 import java.util.Comparator;
 
 /**

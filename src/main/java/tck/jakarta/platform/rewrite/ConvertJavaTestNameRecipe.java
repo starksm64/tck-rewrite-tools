@@ -14,7 +14,7 @@ public class ConvertJavaTestNameRecipe extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Expand the `CustomerInfo` class with new fields.";
+        return "Convert JavaTest @testName to @Test.";
     }
 
     @Override
@@ -24,6 +24,6 @@ public class ConvertJavaTestNameRecipe extends Recipe {
 
     @Override
     protected JavaIsoVisitor<ExecutionContext> getVisitor() {
-        return new ConvertJavaTestNameVisitor<ExecutionContext>();
+        return new ConvertJavaTestNameVisitor<>();
     }
 }
