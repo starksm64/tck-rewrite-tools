@@ -14,7 +14,7 @@ public class ConvertTestNameTest implements RewriteTest {
     }
 
     @Test
-    void expandsExpectedCustomerInfoMethod() {
+    void addTestAnnotation() {
         rewriteRun(
                 java(
                         """
