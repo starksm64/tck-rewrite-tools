@@ -2,6 +2,7 @@ package tck.jakarta.platform.rewrite;
 
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.Comment;
 import org.openrewrite.java.tree.J;
@@ -18,12 +19,9 @@ public class ConvertJavaTestNameVisitor<ExecutionContext> extends JavaIsoVisitor
 
     private final JavaTemplate testAnnotationTemplate =
             JavaTemplate.builder(this::getCursor, "@Test")
+                    .javaParser(JavaParser.fromJavaVersion().classpath("junit-jupiter-api"))
                     .imports("org.junit.jupiter.api.Test")
                     .build();
-
-
-    public ConvertJavaTestNameVisitor() {
-    }
 
     @Override
     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ec) {
@@ -38,11 +36,13 @@ public class ConvertJavaTestNameVisitor<ExecutionContext> extends JavaIsoVisitor
                 for(Javadoc jd : ((Javadoc.DocComment) c).getBody()) {
                     if(jd instanceof Javadoc.UnknownBlock) {
                         String name = ((Javadoc.UnknownBlock) jd).getName();
-                        System.out.printf("Found unknown block tag: %s\n", name);
                         if(name.equals("testName:")) {
                             method = method.withTemplate(testAnnotationTemplate,
                                     method.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+                            maybeAddImport("org.junit.jupiter.api.Test");
                             System.out.println("Added @Test annotation?\n"+method);
+                        } else {
+                            System.out.printf("Unknown block tag: %s\n", name);
                         }
                     }
                 }
