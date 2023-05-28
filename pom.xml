@@ -17,6 +17,7 @@
         <version.javatest>5.0</version.javatest>
         <version.openrewrite>7.40.8</version.openrewrite>
         <version.servlet-api>6.0.0</version.servlet-api>
+        <version.tcktools>11.0.0-SNAPSHOT</version.tcktools>
     </properties>
 
     <dependencyManagement>
@@ -44,6 +45,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.openrewrite</groupId>
+            <artifactId>rewrite-java-test</artifactId>
+            <version>${version.openrewrite}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.jboss.arquillian.junit5</groupId>
             <artifactId>arquillian-junit5-container</artifactId>
         </dependency>
@@ -67,6 +74,11 @@
             <groupId>commons-httpclient</groupId>
             <artifactId>commons-httpclient</artifactId>
             <version>${version.http-commons}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakartatck</groupId>
+            <artifactId>jar2shrinkwrap</artifactId>
+            <version>${version.tcktools}</version>
         </dependency>
         <dependency>
             <groupId>javatest</groupId>
