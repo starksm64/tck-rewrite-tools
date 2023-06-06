@@ -1,50 +1,18 @@
 package tck.conversion.rewrite;
 
 import org.junit.jupiter.api.Test;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-
-import tck.jakarta.platform.rewrite.AddArquillianDeployMethod;
-import tck.jakarta.platform.rewrite.ConvertJavaTestNameRecipe;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collections;
+import tck.jakarta.platform.rewrite.JavaTestToArquillianShrinkwrap;
 
 import static org.openrewrite.java.Assertions.java;
 
-class LocalRecipe extends Recipe {
-    LocalRecipe() {
-        doNext(new ConvertJavaTestNameRecipe());
-    }
-    @Override
-    public String getDisplayName() {
-        return "Add missing @Deployment";
-    }
-
-    @Override
-    public String getDescription() {
-        return getDisplayName() + ".";
-    }
-
-    @Override
-    protected JavaIsoVisitor<ExecutionContext> getVisitor() {
-        return new AddArquillianDeployMethod<>();
-    }
-
-}
-
-public class AddArqDeploymentTest implements RewriteTest {
+class JavaTestToArqTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        Path testClasses = Paths.get("/Users/starksm/Dev/Jakarta/tck-rewrite-tools/target", "test-classes");
-
         spec
-                .recipe(new LocalRecipe())
+                .recipe(new JavaTestToArquillianShrinkwrap())
                 .parser(JavaParser.fromJavaVersion()
                         .classpath(JavaParser.runtimeClasspath())
                 );

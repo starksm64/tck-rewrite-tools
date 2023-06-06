@@ -5,16 +5,19 @@ import org.openrewrite.Recipe;
 import org.openrewrite.java.JavaIsoVisitor;
 import java.time.Duration;
 
+/**
+ * Converts methods with the @testName javadoc tag to methods with the Junit5 @Test annotation
+ */
 public class ConvertJavaTestNameRecipe extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Convert JavaTest @testName to @Test";
+        return "JavaTest to Junit5 @Test";
     }
 
     @Override
     public String getDescription() {
-        return "Convert JavaTest @testName to @Test.";
+        return "Converts JavaTest @testName to @Test.";
     }
 
     @Override
