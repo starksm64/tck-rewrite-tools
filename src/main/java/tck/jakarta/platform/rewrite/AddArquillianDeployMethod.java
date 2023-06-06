@@ -63,39 +63,45 @@ public class AddArquillianDeployMethod<ExecutionContext> extends JavaIsoVisitor<
         // If this is a concrete subclass of EETest, add an arq deployment method
         if(!isAbstract && isEETest) {
             String pkg = cd.getType().getPackageName();
-            JarProcessor war = Jar2ShrinkWrap.fromPackage(pkg);
-            StringWriter methodCodeWriter = new StringWriter();
-            war.saveOutput(methodCodeWriter, false);
-            String methodCode = methodCodeWriter.toString();
-            if(methodCode.length() == 0) {
-                throw new IllegalStateException("No code generated for package: "+pkg);
+            try {
+                JarProcessor war = Jar2ShrinkWrap.fromPackage(pkg);
+                StringWriter methodCodeWriter = new StringWriter();
+                war.saveOutput(methodCodeWriter, false);
+                String methodCode = methodCodeWriter.toString();
+                if (methodCode.length() == 0) {
+                    System.out.printf("No code generated for package: " + pkg);
+                    return cd;
+                }
+
+                JavaTemplate deploymentTemplate =
+                        JavaTemplate.builder(this::getCursor, methodCode)
+                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                .imports("org.jboss.arquillian.container.test.api.Deployment",
+                                        "org.jboss.shrinkwrap.api.ShrinkWrap",
+                                        "org.jboss.shrinkwrap.api.spec.WebArchive",
+                                        "org.jboss.shrinkwrap.api.spec.JavaArchive",
+                                        "jakartatck.jar2shrinkwrap.LibraryUtil",
+                                        "java.util.List"
+                                )
+                                .build();
+
+                String dotClassRef = classDecl.getType().getClassName()+".class";
+                cd = classDecl.withBody(
+                        classDecl.getBody().withTemplate(
+                                deploymentTemplate,
+                                classDecl.getBody().getCoordinates().firstStatement(),
+                                dotClassRef
+                        ));
+                maybeAddImport("org.jboss.arquillian.container.test.api.Deployment");
+                maybeAddImport("org.jboss.shrinkwrap.api.ShrinkWrap");
+                maybeAddImport("org.jboss.shrinkwrap.api.spec.JavaArchive");
+                maybeAddImport("org.jboss.shrinkwrap.api.spec.WebArchive");
+                maybeAddImport("jakartatck.jar2shrinkwrap.LibraryUtil");
+                maybeAddImport("java.util.List");
+            } catch (RuntimeException e) {
+                System.out.printf("No code generated for package: " + pkg);
+                return cd;
             }
-
-            JavaTemplate deploymentTemplate =
-                    JavaTemplate.builder(this::getCursor, methodCode)
-                            .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                            .imports("org.jboss.arquillian.container.test.api.Deployment",
-                                    "org.jboss.shrinkwrap.api.ShrinkWrap",
-                                    "org.jboss.shrinkwrap.api.spec.WebArchive",
-                                    "org.jboss.shrinkwrap.api.spec.JavaArchive",
-                                    "jakartatck.jar2shrinkwrap.LibraryUtil",
-                                    "java.util.List"
-                                    )
-                            .build();
-
-            String dotClassRef = classDecl.getType().getClassName()+".class";
-            cd = classDecl.withBody(
-                    classDecl.getBody().withTemplate(
-                            deploymentTemplate,
-                            classDecl.getBody().getCoordinates().firstStatement(),
-                            dotClassRef
-                    ));
-            maybeAddImport("org.jboss.arquillian.container.test.api.Deployment");
-            maybeAddImport("org.jboss.shrinkwrap.api.ShrinkWrap");
-            maybeAddImport("org.jboss.shrinkwrap.api.spec.JavaArchive");
-            maybeAddImport("org.jboss.shrinkwrap.api.spec.WebArchive");
-            maybeAddImport("jakartatck.jar2shrinkwrap.LibraryUtil");
-            maybeAddImport("java.util.List");
 
         }
         return cd;
