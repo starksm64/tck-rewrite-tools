@@ -27,7 +27,7 @@ public class AddArquillianDeployMethod<ExecutionContext> extends JavaIsoVisitor<
 
     @Override
     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
-        System.out.println(TreeVisitingPrinter.printTree(getCursor()));
+        //System.out.println(TreeVisitingPrinter.printTree(getCursor()));
 
         J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, executionContext);
         Set<String> parentTypes = new HashSet<>();

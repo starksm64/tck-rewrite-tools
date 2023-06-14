@@ -10,6 +10,9 @@ import java.time.Duration;
  */
 public class ConvertJavaTestNameRecipe extends Recipe {
 
+    public ConvertJavaTestNameRecipe() {
+        //doNext(new JavaTestToArquillianShrinkwrap());
+    }
     @Override
     public String getDisplayName() {
         return "JavaTest to Junit5 @Test";

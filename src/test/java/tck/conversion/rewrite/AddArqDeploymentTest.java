@@ -85,6 +85,14 @@ public class AddArqDeploymentTest implements RewriteTest {
                                     
                                         @Deployment(testable = false)
                                         public static WebArchive getTestArchive() throws Exception {
+                                            // TODO, check the library jar classes
+                                        
+                                    /*
+                                            WEB-INF/lib/initilizer.jar
+                                                /META-INF/MANIFEST.MF
+                                                /com/sun/ts/tests/servlet/api/jakarta_servlet/scinitializer/setsessiontrackingmodes/TCKServletContainerInitializer.class
+                                                /META-INF/services/jakarta.servlet.ServletContainerInitializer
+                                    */
                                             List<JavaArchive> warJars = LibraryUtil.getJars(SomeTestClass.class);
 
                                             return ShrinkWrap.create(WebArchive.class, "Client.war")

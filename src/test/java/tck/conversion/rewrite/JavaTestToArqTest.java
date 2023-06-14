@@ -6,6 +6,11 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import tck.jakarta.platform.rewrite.JavaTestToArquillianShrinkwrap;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import static org.openrewrite.java.Assertions.java;
 
 class JavaTestToArqTest implements RewriteTest {
@@ -15,7 +20,8 @@ class JavaTestToArqTest implements RewriteTest {
                 .recipe(new JavaTestToArquillianShrinkwrap())
                 .parser(JavaParser.fromJavaVersion()
                         .classpath(JavaParser.runtimeClasspath())
-                );
+                )
+        ;
     }
 
     @Test
@@ -53,6 +59,14 @@ class JavaTestToArqTest implements RewriteTest {
                                     
                                         @Deployment(testable = false)
                                         public static WebArchive getTestArchive() throws Exception {
+                                            // TODO, check the library jar classes
+                                        
+                                    /*
+                                            WEB-INF/lib/initilizer.jar
+                                                /META-INF/MANIFEST.MF
+                                                /com/sun/ts/tests/servlet/api/jakarta_servlet/scinitializer/setsessiontrackingmodes/TCKServletContainerInitializer.class
+                                                /META-INF/services/jakarta.servlet.ServletContainerInitializer
+                                    */
                                             List<JavaArchive> warJars = LibraryUtil.getJars(SomeTestClass.class);
 
                                             return ShrinkWrap.create(WebArchive.class, "Client.war")
@@ -76,6 +90,22 @@ class JavaTestToArqTest implements RewriteTest {
                                 """
                 )
         );
+    }
+
+    @Test
+    public void testLargeCase() throws IOException {
+        // Assumes this is being run within the project, not as a bundled test artifact
+        Path projectRoot = Paths.get("").toAbsolutePath();
+        Path beforePath = projectRoot.resolve("src/test/java/tck/conversion/rewrite/LargeCaseBefore.java");
+        String before = Files.readString(beforePath);
+        before = before.replace("LargeCaseBefore", "LargeCase")
+                .replace("tck.conversion.rewrite", "com.sun.ts.tests.servlet.api.jakarta_servlet_http.sessioncookieconfig");
+        Path afterPath = projectRoot.resolve("src/test/java/tck/conversion/rewrite/LargeCaseAfter.java");
+        String after = Files.readString(afterPath);
+        after = after.replace("LargeCaseAfter", "LargeCase")
+                .replace("tck.conversion.rewrite", "com.sun.ts.tests.servlet.api.jakarta_servlet_http.sessioncookieconfig");
+
+        rewriteRun(java(before, after));
     }
 }
 

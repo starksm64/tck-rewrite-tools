@@ -17,6 +17,7 @@ public class JavaTestToArquillianShrinkwrap extends Recipe {
     public JavaTestToArquillianShrinkwrap() {
         doNext(new ConvertJavaTestNameRecipe());
     }
+
     @Override
     public String getDisplayName() {
         return "JavaTest to Arquillian/Shrinkwrap/Junit5";
