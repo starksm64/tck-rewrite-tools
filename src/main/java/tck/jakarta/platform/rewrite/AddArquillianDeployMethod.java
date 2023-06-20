@@ -63,7 +63,13 @@ public class AddArquillianDeployMethod<ExecutionContext> extends JavaIsoVisitor<
         // If this is a concrete subclass of EETest, add an arq deployment method
         if(!isAbstract && isEETest) {
             String pkg = cd.getType().getPackageName();
+            ClassLoader prevCL = Thread.currentThread().getContextClassLoader();
             try {
+                Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+                /*
+                String clInfo = ClassLoaderUtils.showClassLoaderHierarchy(this, "visitClassDeclaration");
+                System.out.println(clInfo);
+                 */
                 JarProcessor war = Jar2ShrinkWrap.fromPackage(pkg);
                 StringWriter methodCodeWriter = new StringWriter();
                 war.saveOutput(methodCodeWriter, false);
@@ -101,6 +107,9 @@ public class AddArquillianDeployMethod<ExecutionContext> extends JavaIsoVisitor<
             } catch (RuntimeException e) {
                 System.out.printf("No code generated for package: " + pkg);
                 return cd;
+            }
+            finally {
+                Thread.currentThread().setContextClassLoader(prevCL);
             }
 
         }
