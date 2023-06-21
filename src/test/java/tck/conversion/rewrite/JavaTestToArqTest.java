@@ -10,6 +10,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.logging.Handler;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -24,6 +29,10 @@ class JavaTestToArqTest implements RewriteTest {
         ;
     }
 
+    /**
+     * Test of a war deployment from the com.sun.ts.tests.servlet.api.jakarta_servlet.scinitializer.setsessiontrackingmodes
+     * pkg.
+     */
     @Test
     void addDeploymentMethod() {
         rewriteRun(
@@ -92,18 +101,95 @@ class JavaTestToArqTest implements RewriteTest {
         );
     }
 
+    /**
+     * A test of a case where there is no deployment artifact, but there are JavaTest methods
+     */
+    @Test
+    public void onlyAddTestAnnotation() {
+        Logger.getLogger("onlyAddTestAnnotation").info("Start");
+
+        rewriteRun(
+                java(
+                        """
+                                    package com.sun.ts.tests.assembly.altDD;
+                                    
+                                    import java.util.Properties;
+                                    
+                                    import com.sun.javatest.Status;
+                                    import com.sun.ts.lib.harness.EETest;
+                                    import com.sun.ts.lib.util.TSNamingContext;
+                                    import com.sun.ts.lib.util.TestUtil;
+                                    
+                                    public class Client extends EETest {
+                                  
+                                        /**
+                                         * @testName: testAppClient
+                                         *
+                                         * @assertion_ids: JavaEE:SPEC:10260
+                                         */
+                                        public void testAppClient() throws Fault {
+                                        }
+                                    }
+                                """,
+                        """
+                                    package com.sun.ts.tests.assembly.altDD;
+                                    
+                                    import java.util.Properties;
+                                    
+                                    import com.sun.javatest.Status;
+                                    import com.sun.ts.lib.harness.EETest;
+                                    import com.sun.ts.lib.util.TSNamingContext;
+                                    import com.sun.ts.lib.util.TestUtil;
+                                    import org.junit.jupiter.api.Test;
+                                    
+                                    public class Client extends EETest {
+                                  
+                                        /**
+                                         * @testName: testAppClient
+                                         *
+                                         * @assertion_ids: JavaEE:SPEC:10260
+                                         */
+                                        @Test
+                                        public void testAppClient() throws Fault {
+                                        }
+                                    }
+                                """
+                )
+        );
+        Logger.getLogger("onlyAddTestAnnotation").info("End");
+    }
+    /**
+     * A test from the com.sun.ts.tests.servlet.api.jakarta_servlet_http.sessioncookieconfig pkg that has several
+     * methods. The before and after source are read in from the LargeCaseBefore.java/LargeCaseAfter.java files
+     *
+     * @throws IOException
+     */
+
     @Test
     public void testLargeCase() throws IOException {
+        String className = "LargeCase";
+        String pkg = "com.sun.ts.tests.servlet.api.jakarta_servlet_http.sessioncookieconfig";
+        runTestFromSource(className, pkg);
+    }
+
+    @Test
+    public void testClient() throws IOException {
+        String className = "Client";
+        String pkg = "com.sun.ts.tests.assembly.altDD";
+        runTestFromSource(className, pkg);
+    }
+
+    private void runTestFromSource(String className, String pkg) throws IOException {
         // Assumes this is being run within the project, not as a bundled test artifact
         Path projectRoot = Paths.get("").toAbsolutePath();
-        Path beforePath = projectRoot.resolve("src/test/java/tck/conversion/rewrite/LargeCaseBefore.java");
+        Path beforePath = projectRoot.resolve("src/test/java/tck/conversion/rewrite/"+className+"Before.java");
         String before = Files.readString(beforePath);
-        before = before.replace("LargeCaseBefore", "LargeCase")
-                .replace("tck.conversion.rewrite", "com.sun.ts.tests.servlet.api.jakarta_servlet_http.sessioncookieconfig");
-        Path afterPath = projectRoot.resolve("src/test/java/tck/conversion/rewrite/LargeCaseAfter.java");
+        before = before.replace(className+"Before", className)
+                .replace("tck.conversion.rewrite", pkg);
+        Path afterPath = projectRoot.resolve("src/test/java/tck/conversion/rewrite/"+className+"After.java");
         String after = Files.readString(afterPath);
-        after = after.replace("LargeCaseAfter", "LargeCase")
-                .replace("tck.conversion.rewrite", "com.sun.ts.tests.servlet.api.jakarta_servlet_http.sessioncookieconfig");
+        after = after.replace(className+"After", className)
+                .replace("tck.conversion.rewrite", pkg);
 
         rewriteRun(java(before, after));
     }

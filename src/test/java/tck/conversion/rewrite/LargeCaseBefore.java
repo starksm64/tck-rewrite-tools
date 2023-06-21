@@ -7,6 +7,11 @@ import com.sun.javatest.Status;
 import com.sun.ts.tests.servlet.common.client.AbstractUrlClient;
 import org.junit.jupiter.api.Disabled;
 
+/**
+ * An example of a larger conversion test. This is read in as a source file by the
+ * JavaTestToArqTest#testLargeCase() method so that it can be updated easily
+ * and syntax checked. The class name and package are replaced by the testLargeCase method.
+ */
 @Disabled
 public class LargeCaseBefore extends AbstractUrlClient {
 

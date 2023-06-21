@@ -11,23 +11,28 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
 import java.io.StringWriter;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * If a class is a non-abstrct extension of com.sun.ts.lib.harness.EETest and it does not
- * already have an Arquillian @Deployment method, add one based on the war2jartool
+ * If a class is a non-abstract extension of com.sun.ts.lib.harness.EETest and it does not
+ * already have an Arquillian @Deployment method, add one based on the Jar2ShrinkWrap has a
+ * test artifact for the package.
  *
  * @param <ExecutionContext>
  */
 public class AddArquillianDeployMethod<ExecutionContext> extends JavaIsoVisitor<ExecutionContext> {
+    private static final Logger log = Logger.getLogger(AddArquillianDeployMethod.class.getName());
     private final AnnotationMatcher TEST_ANN_MATCH = new AnnotationMatcher("@org.jboss.arquillian.container.test.api.Deployment");
 
     @Override
     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
-        //System.out.println(TreeVisitingPrinter.printTree(getCursor()));
+        if(log.isLoggable(Level.FINEST)) {
+            log.finest(TreeVisitingPrinter.printTree(getCursor()));
+        }
 
         J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, executionContext);
         Set<String> parentTypes = new HashSet<>();
@@ -47,7 +52,7 @@ public class AddArquillianDeployMethod<ExecutionContext> extends JavaIsoVisitor<
         boolean isEETest = parentTypes.contains("com.sun.ts.lib.harness.EETest");
         List<J.Modifier> modifiers = classDecl.getModifiers();
         boolean isAbstract = modifiers.stream().anyMatch(modifier -> modifier.getType() == J.Modifier.Type.Abstract);
-        System.out.printf("%s isEETest=%s, isAbstract=%s\n", cd.getType().getClassName(), isEETest, isAbstract);
+        log.fine("%s isEETest=%s, isAbstract=%s\n".formatted(cd.getType().getClassName(), isEETest, isAbstract));
 
         // Check if the class already has a method marked with @Deployment
         boolean deploymentMethodExists = classDecl.getBody().getStatements().stream()
@@ -56,7 +61,7 @@ public class AddArquillianDeployMethod<ExecutionContext> extends JavaIsoVisitor<
                 .anyMatch(methodDeclaration -> methodDeclaration.getAllAnnotations().stream().anyMatch(TEST_ANN_MATCH::matches));
         // If the class already has a `@Deployment *()` method, don't make any changes to it.
         if (deploymentMethodExists) {
-            System.out.println("@Deployment annotated method exists, return existing class def");
+            log.fine("@Deployment annotated method exists, return existing class def");
             return cd;
         }
 
@@ -75,7 +80,7 @@ public class AddArquillianDeployMethod<ExecutionContext> extends JavaIsoVisitor<
                 war.saveOutput(methodCodeWriter, false);
                 String methodCode = methodCodeWriter.toString();
                 if (methodCode.length() == 0) {
-                    System.out.printf("No code generated for package: " + pkg);
+                    log.fine("No Jar2ShrinkWrap artifact, no code generated for package: " + pkg);
                     return cd;
                 }
 
@@ -104,8 +109,9 @@ public class AddArquillianDeployMethod<ExecutionContext> extends JavaIsoVisitor<
                 maybeAddImport("org.jboss.shrinkwrap.api.spec.WebArchive");
                 maybeAddImport("jakartatck.jar2shrinkwrap.LibraryUtil");
                 maybeAddImport("java.util.List");
+                log.info("Added @Deployment method to class: "+classDecl.getType().getFullyQualifiedName());
             } catch (RuntimeException e) {
-                System.out.printf("No code generated for package: " + pkg);
+                log.fine("No code generated for package: %s, due to exception: %s".formatted(pkg, e));
                 return cd;
             }
             finally {

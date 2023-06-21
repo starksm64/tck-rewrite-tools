@@ -11,12 +11,15 @@ import org.openrewrite.java.tree.TextComment;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Find methods marked with a @testName javadoc comment and add a Junit5 @Test annotation
  * @param <ExecutionContext>
  */
 public class ConvertJavaTestNameVisitor<ExecutionContext> extends JavaIsoVisitor<ExecutionContext> {
+    private static final Logger log = Logger.getLogger(ConvertJavaTestNameRecipe.class.getName());
     private final AnnotationMatcher TEST_ANN_MATCH = new AnnotationMatcher("@org.junit.jupiter.api.Test");
 
     private final JavaTemplate testAnnotationTemplate =
@@ -29,13 +32,13 @@ public class ConvertJavaTestNameVisitor<ExecutionContext> extends JavaIsoVisitor
     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ec) {
         String methodName = method.getSimpleName();
         if(method.getAllAnnotations().stream().anyMatch(TEST_ANN_MATCH::matches)) {
-            System.out.printf("CJTN: Visting(%s) skipped due to @Test\n", methodName);
+            log.fine("Visting(%s) skipped due to @Test".formatted(methodName));
             return super.visitMethodDeclaration(method, ec);
         }
 
         method = super.visitMethodDeclaration(method, ec);
         List<Comment> comments = method.getComments();
-        System.out.printf("CJTN: Visting(%s), comments=%d\n", methodName, comments.size());
+        log.fine("Visting(%s), comments=%d".formatted(methodName, comments.size()));
 
         for(Comment c : comments) {
             if(c instanceof Javadoc.DocComment) {
@@ -43,12 +46,13 @@ public class ConvertJavaTestNameVisitor<ExecutionContext> extends JavaIsoVisitor
                     if(jd instanceof Javadoc.UnknownBlock) {
                         String name = ((Javadoc.UnknownBlock) jd).getName();
                         if(name.equals("testName:")) {
+                            // Javadoc comment with a @testName tag
                             method = method.withTemplate(testAnnotationTemplate,
                                     method.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
                             maybeAddImport("org.junit.jupiter.api.Test");
-                            System.out.println("Added @Test annotation?\n"+method);
+                            log.fine("Added @Test annotation to: "+method);
                         } else {
-                            System.out.printf("Unknown block tag: %s\n", name);
+                            log.finer("Unknown block tag: "+name);
                         }
                     }
                 }
@@ -56,12 +60,13 @@ public class ConvertJavaTestNameVisitor<ExecutionContext> extends JavaIsoVisitor
                 String text = ((TextComment)c).getText();
                 int testNameIndex = text.indexOf("testName:");
                 if(testNameIndex >= 0) {
+                    // Java comment with a @testName tag
                     String name = text.substring(testNameIndex+9).strip();
                     String[] parts = name.split("[\s\n\t]+");
                     method = method.withTemplate(testAnnotationTemplate,
                             method.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
-                    maybeAddImport("org.junit.jupiter.api.Test");
-                    System.out.println("Added @Test annotation?\n"+method);
+                    maybeAddImport("org.junit.jupiter.api.Test", null, false);
+                    log.fine("Added @Test annotation to: "+method);
                 }
             }
         }
