@@ -2,6 +2,7 @@ package tck.jakarta.platform.rewrite;
 
 import jakartatck.jar2shrinkwrap.Jar2ShrinkWrap;
 import jakartatck.jar2shrinkwrap.JarProcessor;
+import jakartatck.jar2shrinkwrap.EarFileProcessor;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -75,9 +76,11 @@ public class AddArquillianDeployMethod<ExecutionContext> extends JavaIsoVisitor<
                 String clInfo = ClassLoaderUtils.showClassLoaderHierarchy(this, "visitClassDeclaration");
                 System.out.println(clInfo);
                  */
-                JarProcessor war = Jar2ShrinkWrap.fromPackage(pkg);
+                JarProcessor jarProcessor = Jar2ShrinkWrap.fromPackage(pkg);
                 StringWriter methodCodeWriter = new StringWriter();
-                war.saveOutput(methodCodeWriter, false);
+                jarProcessor.saveOutput(methodCodeWriter, false);
+                boolean isEar = jarProcessor instanceof EarFileProcessor;
+
                 String methodCode = methodCodeWriter.toString();
                 if (methodCode.length() == 0) {
                     log.fine("No Jar2ShrinkWrap artifact, no code generated for package: " + pkg);
@@ -107,6 +110,9 @@ public class AddArquillianDeployMethod<ExecutionContext> extends JavaIsoVisitor<
                 maybeAddImport("org.jboss.shrinkwrap.api.ShrinkWrap");
                 maybeAddImport("org.jboss.shrinkwrap.api.spec.JavaArchive");
                 maybeAddImport("org.jboss.shrinkwrap.api.spec.WebArchive");
+                if ( isEar ) {
+                    maybeAddImport("org.jboss.shrinkwrap.api.spec.EnterpriseArchive");
+                }
                 maybeAddImport("jakartatck.jar2shrinkwrap.LibraryUtil");
                 maybeAddImport("java.util.List");
                 log.info("Added @Deployment method to class: "+classDecl.getType().getFullyQualifiedName());
