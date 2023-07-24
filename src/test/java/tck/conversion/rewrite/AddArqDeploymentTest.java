@@ -41,7 +41,7 @@ class LocalRecipe extends Recipe {
 public class AddArqDeploymentTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        Path testClasses = Paths.get("/Users/starksm/Dev/Jakarta/tck-rewrite-tools/target", "test-classes");
+        Path testClasses = Paths.get("target", "test-classes");
 
         spec
                 .recipe(new LocalRecipe())
