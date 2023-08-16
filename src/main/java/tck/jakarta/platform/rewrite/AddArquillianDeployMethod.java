@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 
 /**
  * If a class is a non-abstract extension of com.sun.ts.lib.harness.EETest and it does not
- * already have an Arquillian @Deployment method, add one based on the Jar2ShrinkWrap has a
+ * already have an Arquillian @Deployment method, add one based on the Jar2ShrinkWrap
  * test artifact for the package.
  *
  * @param <ExecutionContext>
@@ -34,6 +34,18 @@ public class AddArquillianDeployMethod<ExecutionContext> extends JavaIsoVisitor<
             log.finest(TreeVisitingPrinter.printTree(getCursor()));
         }
 
+        // Check if the class already has a method marked with @Deployment
+        boolean deploymentMethodExists = classDecl.getBody().getStatements().stream()
+                .filter(statement -> statement instanceof J.MethodDeclaration)
+                .map(J.MethodDeclaration.class::cast)
+                .anyMatch(methodDeclaration -> methodDeclaration.getAllAnnotations().stream().anyMatch(TEST_ANN_MATCH::matches));
+        // If the class already has a `@Deployment *()` method, don't make any changes to it.
+        if (deploymentMethodExists) {
+            log.fine("@Deployment annotated method exists, return existing class def");
+            return classDecl;
+        }
+
+        // Get a set of the parent class types
         J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, executionContext);
         Set<String> parentTypes = new HashSet<>();
         JavaType.FullyQualified currentFq = cd.getType();
@@ -53,17 +65,6 @@ public class AddArquillianDeployMethod<ExecutionContext> extends JavaIsoVisitor<
         List<J.Modifier> modifiers = classDecl.getModifiers();
         boolean isAbstract = modifiers.stream().anyMatch(modifier -> modifier.getType() == J.Modifier.Type.Abstract);
         log.fine("%s isEETest=%s, isAbstract=%s\n".formatted(cd.getType().getClassName(), isEETest, isAbstract));
-
-        // Check if the class already has a method marked with @Deployment
-        boolean deploymentMethodExists = classDecl.getBody().getStatements().stream()
-                .filter(statement -> statement instanceof J.MethodDeclaration)
-                .map(J.MethodDeclaration.class::cast)
-                .anyMatch(methodDeclaration -> methodDeclaration.getAllAnnotations().stream().anyMatch(TEST_ANN_MATCH::matches));
-        // If the class already has a `@Deployment *()` method, don't make any changes to it.
-        if (deploymentMethodExists) {
-            log.fine("@Deployment annotated method exists, return existing class def");
-            return cd;
-        }
 
         // If this is a concrete subclass of EETest, add an arq deployment method
         if(!isAbstract && isEETest) {
