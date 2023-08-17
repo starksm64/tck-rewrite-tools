@@ -9,11 +9,38 @@ import com.sun.ts.lib.util.TSNamingContext;
 import com.sun.ts.lib.util.TestUtil;
 import com.sun.ts.tests.assembly.altDD.PainterBean;
 import com.sun.ts.tests.assembly.altDD.PainterBeanHome;
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.shrinkwrap.api.Archive;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 @Disabled
 public class ClientAfter extends EETest {
+
+    @Deployment(testable = false)
+    public static Archive<?> deployment() {
+
+        final EnterpriseArchive ear = ShrinkWrap.create(EnterpriseArchive.class, "assembly_altDD.ear");
+        // Add ear submodules
+
+        JavaArchive assembly_altDD_client_jar = ShrinkWrap.create(JavaArchive.class, "assembly_altDD_client_jar");
+        assembly_altDD_client_jar.addClass(com.sun.ts.tests.assembly.altDD.Client.class);
+        assembly_altDD_client_jar.addClass(com.sun.ts.tests.assembly.altDD.PainterBean.class);
+        assembly_altDD_client_jar.addClass(com.sun.ts.tests.assembly.altDD.PainterBeanHome.class);
+        ear.addAsModule(assembly_altDD_client_jar);
+
+        JavaArchive assembly_altDD_ejb_jar = ShrinkWrap.create(JavaArchive.class, "assembly_altDD_ejb_jar");
+        assembly_altDD_ejb_jar.addClass(com.sun.ts.tests.assembly.altDD.PainterBean.class);
+        assembly_altDD_ejb_jar.addClass(com.sun.ts.tests.assembly.altDD.PainterBeanEJB.class);
+        assembly_altDD_ejb_jar.addClass(com.sun.ts.tests.assembly.altDD.PainterBeanHome.class);
+        assembly_altDD_ejb_jar.addClass(com.sun.ts.tests.assembly.util.shared.ejbref.common.ReferencedBeanCode.class);
+        assembly_altDD_ejb_jar.addClass(com.sun.ts.tests.common.ejb.wrappers.StatelessWrapper.class);
+        ear.addAsModule(assembly_altDD_ejb_jar);
+        return ear;
+    }
 
     private static final String prefix = "java:comp/env/";
 

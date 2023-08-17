@@ -84,16 +84,17 @@ public class AddArquillianDeployMethod<ExecutionContext> extends JavaIsoVisitor<
                     log.fine("No Jar2ShrinkWrap artifact, no code generated for package: " + pkg);
                     return cd;
                 }
+                log.finest("Applying template to method code: "+methodCode);
 
                 JavaTemplate deploymentTemplate =
                         JavaTemplate.builder(this::getCursor, methodCode)
                                 .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                                 .imports("org.jboss.arquillian.container.test.api.Deployment",
+                                        "org.jboss.shrinkwrap.api.Archive",
                                         "org.jboss.shrinkwrap.api.ShrinkWrap",
-                                        "org.jboss.shrinkwrap.api.spec.WebArchive",
+                                        "org.jboss.shrinkwrap.api.spec.EnterpriseArchive",
                                         "org.jboss.shrinkwrap.api.spec.JavaArchive",
-                                        "jakartatck.jar2shrinkwrap.LibraryUtil",
-                                        "java.util.List"
+                                        "org.jboss.shrinkwrap.api.spec.WebArchive"
                                 )
                                 .build();
 
@@ -101,18 +102,17 @@ public class AddArquillianDeployMethod<ExecutionContext> extends JavaIsoVisitor<
                 cd = classDecl.withBody(
                         classDecl.getBody().withTemplate(
                                 deploymentTemplate,
-                                classDecl.getBody().getCoordinates().firstStatement(),
-                                dotClassRef
+                                classDecl.getBody().getCoordinates().firstStatement()
                         ));
                 maybeAddImport("org.jboss.arquillian.container.test.api.Deployment");
+                maybeAddImport("org.jboss.shrinkwrap.api.Archive");
                 maybeAddImport("org.jboss.shrinkwrap.api.ShrinkWrap");
+                maybeAddImport("org.jboss.shrinkwrap.api.spec.EnterpriseArchive");
                 maybeAddImport("org.jboss.shrinkwrap.api.spec.JavaArchive");
                 maybeAddImport("org.jboss.shrinkwrap.api.spec.WebArchive");
-                maybeAddImport("jakartatck.jar2shrinkwrap.LibraryUtil");
-                maybeAddImport("java.util.List");
                 log.info("Added @Deployment method to class: "+classDecl.getType().getFullyQualifiedName());
             } catch (RuntimeException e) {
-                log.fine("No code generated for package: %s, due to exception: %s".formatted(pkg, e));
+                log.warning("No code generated for package: %s, due to exception: %s".formatted(pkg, e));
                 return cd;
             }
             finally {

@@ -55,38 +55,32 @@ class JavaTestToArqTest implements RewriteTest {
                                     package com.sun.ts.tests.servlet.api.jakarta_servlet.scinitializer.setsessiontrackingmodes;
                                     
                                     import com.sun.ts.tests.servlet.common.client.AbstractUrlClient;
-                                    import jakartatck.jar2shrinkwrap.LibraryUtil;
                                     import org.jboss.arquillian.container.test.api.Deployment;
                                     import org.jboss.shrinkwrap.api.ShrinkWrap;
                                     import org.jboss.shrinkwrap.api.spec.JavaArchive;
                                     import org.jboss.shrinkwrap.api.spec.WebArchive;
                                     import org.junit.jupiter.api.Test;
-
-                                    import java.util.List;
                                     
                                     public class SomeTestClass extends AbstractUrlClient {
                                     
                                         @Deployment(testable = false)
                                         public static WebArchive getTestArchive() throws Exception {
-                                            // TODO, check the library jar classes
-                                        
-                                    /*
-                                            WEB-INF/lib/initilizer.jar
-                                                /META-INF/MANIFEST.MF
-                                                /com/sun/ts/tests/servlet/api/jakarta_servlet/scinitializer/setsessiontrackingmodes/TCKServletContainerInitializer.class
-                                                /META-INF/services/jakarta.servlet.ServletContainerInitializer
-                                    */
-                                            List<JavaArchive> warJars = LibraryUtil.getJars(SomeTestClass.class);
 
-                                            return ShrinkWrap.create(WebArchive.class, "Client.war")
-                                                    .addAsLibraries(warJars)
-                                                    .addClass(com.sun.ts.tests.servlet.api.jakarta_servlet.scinitializer.setsessiontrackingmodes.TCKServletContainerInitializer.class)
-                                                    .addClass(com.sun.ts.tests.servlet.api.jakarta_servlet.scinitializer.setsessiontrackingmodes.TestListener.class)
-                                                    .addClass(com.sun.ts.tests.servlet.api.jakarta_servlet.scinitializer.setsessiontrackingmodes.TestServlet.class)
-                                                    .addClass(com.sun.ts.tests.servlet.common.servlets.GenericTCKServlet.class)
-                                                    .addClass(com.sun.ts.tests.servlet.common.util.Data.class)
-                                                    .addClass(com.sun.ts.tests.servlet.common.util.ServletTestUtil.class)
-                                                    .addAsWebInfResource("web.xml");
+                                            WebArchive servlet_sci_setsessiontrackingmode_web_war = ShrinkWrap.create(WebArchive.class, "servlet_sci_setsessiontrackingmode_web_war");
+                                            servlet_sci_setsessiontrackingmode_web_war.addAsWebInfResource("web.xml");
+                                    
+                                            JavaArchive initilizer_jar = ShrinkWrap.create(JavaArchive.class, "initilizer.jar");
+                                            initilizer_jar.addClass("com.sun.ts.tests.servlet.api.jakarta_servlet.scinitializer.setsessiontrackingmodes.TCKServletContainerInitializer");
+                                            initilizer_jar.addAsManifestResource("META-INF/MANIFEST.MF");
+                                            initilizer_jar.addAsManifestResource("META-INF/services/jakarta.servlet.ServletContainerInitializer");
+                                            servlet_sci_setsessiontrackingmode_web_war.addAsLibrary(initilizer_jar);
+                                            servlet_sci_setsessiontrackingmode_web_war.addClass(com.sun.ts.tests.servlet.api.jakarta_servlet.scinitializer.setsessiontrackingmodes.TCKServletContainerInitializer.class);
+                                            servlet_sci_setsessiontrackingmode_web_war.addClass(com.sun.ts.tests.servlet.api.jakarta_servlet.scinitializer.setsessiontrackingmodes.TestListener.class);
+                                            servlet_sci_setsessiontrackingmode_web_war.addClass(com.sun.ts.tests.servlet.api.jakarta_servlet.scinitializer.setsessiontrackingmodes.TestServlet.class);
+                                            servlet_sci_setsessiontrackingmode_web_war.addClass(com.sun.ts.tests.servlet.common.servlets.GenericTCKServlet.class);
+                                            servlet_sci_setsessiontrackingmode_web_war.addClass(com.sun.ts.tests.servlet.common.util.Data.class);
+                                            servlet_sci_setsessiontrackingmode_web_war.addClass(com.sun.ts.tests.servlet.common.util.ServletTestUtil.class);
+                                            return servlet_sci_setsessiontrackingmode_web_war;
                                         }
                                   
                                         /**
@@ -101,63 +95,13 @@ class JavaTestToArqTest implements RewriteTest {
         );
     }
 
-    /**
-     * A test of a case where there is no deployment artifact, but there are JavaTest methods
-     */
     @Test
-    public void onlyAddTestAnnotation() {
-        Logger.getLogger("onlyAddTestAnnotation").info("Start");
-
-        rewriteRun(
-                java(
-                        """
-                                    package com.sun.ts.tests.assembly.altDD;
-                                    
-                                    import java.util.Properties;
-                                    
-                                    import com.sun.javatest.Status;
-                                    import com.sun.ts.lib.harness.EETest;
-                                    import com.sun.ts.lib.util.TSNamingContext;
-                                    import com.sun.ts.lib.util.TestUtil;
-                                    
-                                    public class Client extends EETest {
-                                  
-                                        /**
-                                         * @testName: testAppClient
-                                         *
-                                         * @assertion_ids: JavaEE:SPEC:10260
-                                         */
-                                        public void testAppClient() throws Fault {
-                                        }
-                                    }
-                                """,
-                        """
-                                    package com.sun.ts.tests.assembly.altDD;
-                                    
-                                    import java.util.Properties;
-                                    
-                                    import com.sun.javatest.Status;
-                                    import com.sun.ts.lib.harness.EETest;
-                                    import com.sun.ts.lib.util.TSNamingContext;
-                                    import com.sun.ts.lib.util.TestUtil;
-                                    import org.junit.jupiter.api.Test;
-                                    
-                                    public class Client extends EETest {
-                                  
-                                        /**
-                                         * @testName: testAppClient
-                                         *
-                                         * @assertion_ids: JavaEE:SPEC:10260
-                                         */
-                                        @Test
-                                        public void testAppClient() throws Fault {
-                                        }
-                                    }
-                                """
-                )
-        );
-        Logger.getLogger("onlyAddTestAnnotation").info("End");
+    public void testAppClientEar() throws IOException {
+        String className = "Client";
+        String pkg = "com.sun.ts.tests.assembly.altDD";
+        runTestFromSource(className, pkg);
     }
+
     /**
      * A test from the com.sun.ts.tests.servlet.api.jakarta_servlet_http.sessioncookieconfig pkg that has several
      * methods. The before and after source are read in from the LargeCaseBefore.java/LargeCaseAfter.java files
@@ -169,13 +113,6 @@ class JavaTestToArqTest implements RewriteTest {
     public void testLargeCase() throws IOException {
         String className = "LargeCase";
         String pkg = "com.sun.ts.tests.servlet.api.jakarta_servlet_http.sessioncookieconfig";
-        runTestFromSource(className, pkg);
-    }
-
-    @Test
-    public void testClient() throws IOException {
-        String className = "Client";
-        String pkg = "com.sun.ts.tests.assembly.altDD";
         runTestFromSource(className, pkg);
     }
 

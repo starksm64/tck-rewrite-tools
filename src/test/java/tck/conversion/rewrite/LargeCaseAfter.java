@@ -2,14 +2,11 @@
 package tck.conversion.rewrite;
 
 import java.io.PrintWriter;
-import java.util.List;
 
 import com.sun.javatest.Status;
 import com.sun.ts.tests.servlet.common.client.AbstractUrlClient;
-import jakartatck.jar2shrinkwrap.LibraryUtil;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -24,16 +21,15 @@ public class LargeCaseAfter extends AbstractUrlClient {
 
     @Deployment(testable = false)
     public static WebArchive getTestArchive() throws Exception {
-        List<JavaArchive> warJars = LibraryUtil.getJars(LargeCaseAfter.class);
 
-        return ShrinkWrap.create(WebArchive.class, "Client.war")
-                .addAsLibraries(warJars)
-                .addClass(com.sun.ts.tests.servlet.api.jakarta_servlet_http.sessioncookieconfig.TestListener.class)
-                .addClass(com.sun.ts.tests.servlet.api.jakarta_servlet_http.sessioncookieconfig.TestServlet.class)
-                .addClass(com.sun.ts.tests.servlet.common.servlets.HttpTCKServlet.class)
-                .addClass(com.sun.ts.tests.servlet.common.util.Data.class)
-                .addClass(com.sun.ts.tests.servlet.common.util.ServletTestUtil.class)
-                .addAsWebInfResource("web.xml");
+        WebArchive servlet_jsh_sessioncookieconfig_web_war = ShrinkWrap.create(WebArchive.class, "servlet_jsh_sessioncookieconfig_web_war");
+        servlet_jsh_sessioncookieconfig_web_war.addAsWebInfResource("web.xml");
+        servlet_jsh_sessioncookieconfig_web_war.addClass(com.sun.ts.tests.servlet.api.jakarta_servlet_http.sessioncookieconfig.TestListener.class);
+        servlet_jsh_sessioncookieconfig_web_war.addClass(com.sun.ts.tests.servlet.api.jakarta_servlet_http.sessioncookieconfig.TestServlet.class);
+        servlet_jsh_sessioncookieconfig_web_war.addClass(com.sun.ts.tests.servlet.common.servlets.HttpTCKServlet.class);
+        servlet_jsh_sessioncookieconfig_web_war.addClass(com.sun.ts.tests.servlet.common.util.Data.class);
+        servlet_jsh_sessioncookieconfig_web_war.addClass(com.sun.ts.tests.servlet.common.util.ServletTestUtil.class);
+        return servlet_jsh_sessioncookieconfig_web_war;
     }
 
     /**
